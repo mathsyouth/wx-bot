@@ -66,6 +66,10 @@ npm install
 node wx-bot.js
 ```
 
+#### conf.js 配置文件参数说明
+
+`access_token` 为百度语音转文本 API 调用 Token，参考[鉴权认证机制](https://ai.baidu.com/ai-doc/REFERENCE/Ck3dwjhhu)即可申请免费的试用 Token。
+
 
 ### 计划实现的功能
 
