@@ -363,7 +363,8 @@ async function onMessage(msg) {
     let wavStream;
     if (filename.endsWith('silk')) {
       const wavFileName = silkToWav(filename);
-      await sleep(1000);
+      // 网络延时较大时，需要调大该参数
+      await sleep(5000);
       wavStream = fs.createReadStream(wavFileName);
     } else {
       const mp3Stream = fs.createReadStream(filename);
