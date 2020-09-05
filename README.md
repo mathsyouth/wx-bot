@@ -79,11 +79,23 @@ sudo apt-get install ffmpeg
 
 #### 安装 wx-voice
 
-如果是 Ubuntu 环境，首先需要运行：
+如果是 Ubuntu 环境，执行 `npm install some-package -g` 时，会报错 "checkPermissions Missing write access to XXX"，解决问题的方法：
+
+```shell
+# 官方给出的一个解决办法是给npm的global安装位置换个地方
+# 第一步：在你的用户文件下新建一个文件夹，这个.npm-global 名字可以用你自己喜欢的名字替换
+mkdir ~/.npm-global
+# 第二步：更改node的安装连接
+npm config set prefix '~/.npm-global'
+# 第三步：在用户的 ~/.bashrc 下增加 path，为的是系统能够找到可执行文件的目录
+export PATH=~/.npm-global/bin:$PATH
+# 第四步：更新 ~/.bashrc ，使其生效
+source ~/.bashrc
 ```
-sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
-```
-否则，执行 `npm install some-package -g` 时会报错 "pemission denied"。
+
+更加详细的方案可以参考官方文档 [Resolving EACCES permissions errors when installing packages globally](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally#reinstall-npm-with-a-node-version-manager)。
+
+安装 wx-voice
 
 ```shell
 npm install wx-voice --save
