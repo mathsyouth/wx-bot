@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "baidu-aip-sdk": "^2.4.6",
     "finis": "^0.4.4",
     "fluent-ffmpeg": "^2.1.2",
     "hot-import": "^0.2.14",

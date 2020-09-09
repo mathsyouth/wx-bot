@@ -10,4 +10,7 @@ module.exports = {
   addFriendKeywords: ['求助', '求入群'],
   // 百度语音转文本 API 调用 Token
   access_token: "your_baidu_token",
+  APP_ID: "your_APP_ID",
+  API_KEY: "your_API_KEY",
+  SECRET_KEY: "your_API_KEY",
 }

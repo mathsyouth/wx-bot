@@ -18,6 +18,7 @@
  *
  */
 const { hotImport } = require('hot-import')
+const aip = require('./aip.js');
 const conf = require("./conf.js") // 配置文件
 const finis = require('finis')
 // node-request请求模块包
@@ -344,8 +345,68 @@ async function onMessage(msg) {
   // 判断消息来自自己，直接return
   if (msg.self()) return
 
-  if (msg.type() === Message.Type.Video) {
-    saveMediaFile(msg)
+  if (msg.type() === Message.Type.Image) {
+    // saveMediaFile(msg)
+    console.log("开始存储图片...")
+    const image = msg.toImage();
+    const fileBox = await image.artwork();
+    const fileName = fileBox.name;
+    fileBox.toFile(fileName, true);
+    console.log("图片存储结束...");
+    await sleep(1000);
+    const text = await aip.ocr(fileName);
+    console.log(`OCR 转换成的文本为${text}`);
+    let contentArray = new Array();
+    for (let i = 1; i < 5; i++) {
+      let content = fs.readFileSync(`configB${i}.txt`, 'utf8');
+      contentArray.push(content);
+    }
+    for (let i = 0; i < 4; i++) {
+      let myRe;
+      let patAnsArray = contentArray[i].split("\n");
+      for (let j = 0; j < patAnsArray.length-1; j ++) {
+        let pat = patAnsArray[j].match(/(?<=<).*(?=>)/)[0];
+        let ans = patAnsArray[j].match(/(?<=").*(?=")/)[0];
+        if (/\+|-/.test(pat)) {
+          let compoundPat = ""
+          let subpatArray = pat.split("|");
+          let compoundSubpat;
+          for (const subpat of subpatArray) {
+            if (/\+/.test(subpat)) {
+              let subsubpatArray = subpat.split("+");
+              compoundSubpat = "";
+              for (const subsubpat of subsubpatArray) {
+                compoundSubpat = compoundSubpat + `(?=.*${subsubpat})`;
+              }
+              compoundSubpat = "^" + compoundSubpat + ".*$";
+            } else if (/-/.test(subpat)) {
+              let subsubpatArray = subpat.split("-");
+              compoundSubpat = `(?=.*${subsubpatArray[0]})`;
+              let subCompoundSubpat = subsubpatArray[1];
+              for (let j = 2; j < subsubpatArray.length; j++) {
+                subCompoundSubpat = subCompoundSubpat + '|' + subsubpatArray[j];
+              }
+              compoundSubpat = "^" + compoundSubpat + `((?!${subCompoundSubpat}).)*$`;
+            } else {
+              compoundSubpat = subpat;
+            }
+            if (compoundPat.length > 0) {
+              compoundPat = compoundPat + '|' + compoundSubpat;
+            } else {
+              compoundPat = compoundSubpat;
+            }
+          }
+          // console.log("comoundPat: ", compoundPat);
+          myRe = new RegExp(compoundPat);
+        } else {
+          myRe = new RegExp(pat);
+        }
+        if (myRe.test(text)) {
+          await msg.say(ans);
+          return;
+        }
+      }
+    }
     return
   }
   
@@ -357,13 +418,13 @@ async function onMessage(msg) {
     const fileBox = await msg.toFileBox();
     const filename = fileBox.name;
     await fileBox.toFile(filename);
-    // await sleep(1000);
+    await sleep(1000);
     console.log("语音存储结束...");
 
     let wavStream;
     if (filename.endsWith('silk')) {
       const wavFileName = silkToWav(filename);
-      // 网络延时较大时，需要调大该参数
+      // 网路延时较大时，需要调大该参数
       await sleep(5000);
       wavStream = fs.createReadStream(wavFileName);
     } else {
@@ -374,9 +435,63 @@ async function onMessage(msg) {
     const text = await speechToText(wavStream);
 
     // 请求机器人接口回复
-    let response = await responseBot(text);
+    // let response = await responseBot(text);
+    // let response = text
     // console.log('语音转化成文本：' + text)
-    msg.say(response);
+    // 读取配置文件中的配置
+    // msg.say(response);
+    // return;
+    let contentArray = new Array();
+    for (let i = 1; i < 5; i++) {
+      let content = fs.readFileSync(`configB${i}.txt`, 'utf8');
+      contentArray.push(content);
+    }
+    for (let i = 0; i < 4; i++) {
+      let myRe;
+      let patAnsArray = contentArray[i].split("\n");
+      for (let j = 0; j < patAnsArray.length-1; j ++) {
+        let pat = patAnsArray[j].match(/(?<=<).*(?=>)/)[0];
+        let ans = patAnsArray[j].match(/(?<=").*(?=")/)[0];
+        if (/\+|-/.test(pat)) {
+          let compoundPat = ""
+          let subpatArray = pat.split("|");
+          let compoundSubpat;
+          for (const subpat of subpatArray) {
+            if (/\+/.test(subpat)) {
+              let subsubpatArray = subpat.split("+");
+              compoundSubpat = "";
+              for (const subsubpat of subsubpatArray) {
+                compoundSubpat = compoundSubpat + `(?=.*${subsubpat})`;
+              }
+              compoundSubpat = "^" + compoundSubpat + ".*$";
+            } else if (/-/.test(subpat)) {
+              let subsubpatArray = subpat.split("-");
+              compoundSubpat = `(?=.*${subsubpatArray[0]})`;
+              let subCompoundSubpat = subsubpatArray[1];
+              for (let j = 2; j < subsubpatArray.length; j++) {
+                subCompoundSubpat = subCompoundSubpat + '|' + subsubpatArray[j];
+              }
+              compoundSubpat = "^" + compoundSubpat + `((?!${subCompoundSubpat}).)*$`;
+            } else {
+              compoundSubpat = subpat;
+            }
+            if (compoundPat.length > 0) {
+              compoundPat = compoundPat + '|' + compoundSubpat;
+            } else {
+              compoundPat = compoundSubpat;
+            }
+          }
+          // console.log("comoundPat: ", compoundPat);
+          myRe = new RegExp(compoundPat);
+        } else {
+          myRe = new RegExp(pat);
+        }
+        if (myRe.test(text)) {
+          await msg.say(ans);
+          return;
+        }
+      }
+    }
     return;
   }
 
@@ -404,7 +519,7 @@ async function onMessage(msg) {
     } else {
       await from.say('什么也不做。如果您在群中说了"退群"，我会将您移出群外。')
     }
-    return
+    return;
   }
 
   /**
@@ -554,7 +669,8 @@ async function onMessage(msg) {
             }
           }
         }
-        await dingRoom.say(unknownAns, from);
+	return;
+        // await dingRoom.say(unknownAns, from);
       }
     } catch(e) {
       log.error(e);
