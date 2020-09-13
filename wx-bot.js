@@ -370,7 +370,7 @@ async function onMessage(msg) {
           }
           // 词向量匹配
           let word = "赌博"; // "贷款", "中奖"
-          ans = `系统检测到你可能说跟${word}相关的话题，请停止违法行为`
+          ans = `系统检测到你可能说跟${word}相关的话题，请停止违法发言`
 	  const score = await aip.text_similarity(word, ocrText);
 	  console.log(`"${ocrText}"和"${word}"之间的相似分数为: ${score}`)
 	  if (score >= 0.1) {
@@ -537,17 +537,26 @@ async function onMessage(msg) {
   }
 
   if (/你好|您好/.test(text)) {
-    await msg.say('你好，我是微信小助手')
-    return
+    if (room) {
+      try {
+        const topic = await room.topic();
+        if (topic === conf.topic) {
+          await room.say('你好，我是微信小助手', from);
+          return;
+        }
+      } catch(e) {
+        log.error(e);
+      }
+    }
   }
   
   if (/操|cao|靠|kao/.test(text)) {
     if (room) {
       try {
-        const dingRoom = await this.Room.find({ topic: conf.topic })
-        if (dingRoom) {
-          await dingRoom.say('你说了脏话，我要将你从群中移出', from)
-          await dingRoom.del(from)
+        const topic = await room.topic();
+        if (topic === conf.topic) {
+          await room.say('你说了脏话，我要将你从群中移出', from)
+          await room.del(from)
         }
       } catch (e) {
           log.error(e)
