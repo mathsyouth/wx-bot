@@ -73,18 +73,27 @@ const {
 /*
  * padplus 协议的安装（尤其是 windows) 和使用请参考
  * https://github.com/wechaty/wechaty-puppet-padplus
-*/
+ * 该服务已于2020年11月30日下线，后续不再支持
+
 const { PuppetPadplus } = require('wechaty-puppet-padplus')
 
 const puppet = new PuppetPadplus({
   token: conf.token,
 })
 
-
 const bot = new Wechaty({
   puppet: puppet,
   name: conf.name, // generate xxxx.memory-card.json and save login data for the next login
 })
+*/
+
+const bot = new Wechaty({
+  puppet: 'wechaty-puppet-hostie',
+  puppetOptions: {
+    token: conf.token,
+    name: conf.name, // generate xxxx.memory-card.json and save login data for the next login
+  }
+});
 
 
 const welcome = `
